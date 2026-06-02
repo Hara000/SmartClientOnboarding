@@ -1,0 +1,548 @@
+{
+  "name": "Smart client Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -624,
+        -96
+      ],
+      "id": "7155e253-53ca-4a04-946e-963d422a2882",
+      "name": "Webhook",
+      "webhookId": "4e91aa6e-a0ce-4ddf-a159-c7a4517971b0"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza los datos de un cliente nuevo y genera contenido para 3 documentos.\n\nDatos del cliente:\nNombre: {{ $('Code').item.json[\"Nombre cliente\"] }}\nEmail: {{ $('Code').item.json[\"Email\"] }}\nEmpresa: {{ $('Code').item.json[\"Empresa\"] }}\nServicio: {{ $('Code').item.json[\"Servicio que necesita\"] }}\nPresupuesto: {{ $('Code').item.json[\"Presupuesto aproximado\"] }}\nNotas: {{ $('Code').item.json[\"Notas adicionales\"] }}\n\nResponde SOLO con este JSON sin nada más:\n{\"ficha\":\"texto aqui\",\"cotizacion\":\"texto aqui\",\"email_bienvenida\":\"texto aqui\"}\nResponde ÚNICAMENTE con el objeto JSON. Sin texto antes ni después. Sin explicaciones.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "6977ff5d-9ba1-4bb5-b1a7-ac3ba9018c67",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        144
+      ],
+      "id": "e2d0690d-6546-4b10-9fb9-5a766c5bda4b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "8ouQe591iERl9RRY",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66d9a8ed-e154-4dd1-b7c9-8e20db69545e",
+              "leftValue": "={{ $json.output.ficha }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "5b65c950-f4eb-4266-8802-8bd473070681",
+      "name": "If info esta completa?"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Webhook').item.json.body[\"Nombre cliente\"] }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1HJl5qtt6z0S_H7VBxMUEEGT4OGmfMvNC",
+          "mode": "list",
+          "cachedResultName": "N8N ONBOARDING",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1HJl5qtt6z0S_H7VBxMUEEGT4OGmfMvNC"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        704,
+        -112
+      ],
+      "id": "8582cb6a-9884-49fa-ab33-f04051384a01",
+      "name": "Crear carpeta cliente",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MwNgjzoOWq1dX5wI",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('Code1').item.json.cotizacion }}",
+        "name": "=Cotización  {{ $('Crear carpeta cliente').item.json.name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Crear carpeta cliente').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        -112
+      ],
+      "id": "93cf1da0-c98b-4795-8590-b56586b519b7",
+      "name": "Create file- Cotizacion",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MwNgjzoOWq1dX5wI",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('Code1').item.json.email_bienvenida }}",
+        "name": "=Bienvenida  {{ $('Crear carpeta cliente').item.json.name }} ",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Crear carpeta cliente').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1312,
+        -112
+      ],
+      "id": "4b8c2ea2-f795-41c6-9c92-f9128e630679",
+      "name": "Create file- Email de Bienvenida",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MwNgjzoOWq1dX5wI",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $('Code1').item.json.ficha }}",
+        "name": "=Ficha  {{ $json.name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('Crear carpeta cliente').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        912,
+        -112
+      ],
+      "id": "37d14b5d-2a25-4510-b437-562645aebcf3",
+      "name": "Create- Ficha cliente",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MwNgjzoOWq1dX5wI",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Code').item.json[\"Email\"] }}",
+        "subject": "=Bienvenido a bordo, {{ $('Code').item.json[\"Nombre cliente\"] }}",
+        "message": "={{ $('Code1').item.json.email_bienvenida }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        -112
+      ],
+      "id": "b614d9af-1e98-426d-adb1-8a77463e9b63",
+      "name": "Send a message to client",
+      "webhookId": "74672e36-0edb-486c-8fbb-6e08281574b0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UW6DYLtLyJip0Su7",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "=public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "clientes",
+          "mode": "list",
+          "cachedResultName": "clientes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $('Code').item.json[\"Nombre cliente\"] }}",
+            "email": "={{ $('Code').item.json[\"Email\"] }}",
+            "empresa": "={{ $('Code').item.json[\"Empresa\"] }}",
+            "servicio": "={{ $('Code').item.json[\"Servicio que necesita\"] }}",
+            "presupuesto": "={{ $('Code').item.json[\"Presupuesto aproximado\"] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "servicio",
+              "displayName": "servicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "presupuesto",
+              "displayName": "presupuesto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fecha_registro",
+              "displayName": "fecha_registro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1728,
+        -112
+      ],
+      "id": "c23f526c-973e-49b0-b698-cbe480f641f7",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "5xN3aoXPxbPR7MLa",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const fields = $input.item.json.body.data.fields;\nconst data = {};\nfields.forEach(field => {\n  data[field.label.trim()] = field.value;\n});\nreturn { json: data };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -96
+      ],
+      "id": "201ec556-a347-40ce-9e61-76a6d95b016b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.item.json.output;\nconst cleaned = output.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\nconst match = cleaned.match(/\\{[\\s\\S]*\\}/);\nif (!match) throw new Error('No JSON found in output');\nconst parsed = JSON.parse(match[0]);\nreturn { json: parsed };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -96
+      ],
+      "id": "d35f1b2e-8165-4d90-a71b-2ac1e8400092",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Faltan datos, completa la información por favor. ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        112
+      ],
+      "id": "8ef2a297-7adf-4e77-b3f2-a7401bd1b881",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If info esta completa?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear carpeta cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear carpeta cliente": {
+      "main": [
+        [
+          {
+            "node": "Create- Ficha cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create- Ficha cliente": {
+      "main": [
+        [
+          {
+            "node": "Create file- Cotizacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file- Cotizacion": {
+      "main": [
+        [
+          {
+            "node": "Create file- Email de Bienvenida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file- Email de Bienvenida": {
+      "main": [
+        [
+          {
+            "node": "Send a message to client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message to client": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "If info esta completa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "2fb8fddf-4adf-4291-abba-09b1d2ed93b9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41ad14bd4a341392d6c4e4790df54758ff773f8106e6f84d6e6c80dae3bca08c"
+  },
+  "id": "lmrgYDEOQATJTFuC",
+  "tags": []
+}
